@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Vehicle Inspection</title>
+  <link rel="stylesheet" href="/static/CssFile.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+</head>
+
+<body>
+  <header class="top">
+    <div class="badge">SMS PROCESS 6.2</div>
+    <h1>Monthly Vehicle Inspection Checklist (Survey)</h1>
+    <p class="subtitle">Vehicle Inspection</p>
+  </header>
+
+  <main class="container">
+    
+    <nav class="tabs-nav">
+      <button type="button" class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button type="button" class="tab-btn" data-tab="inspection">New Inspection</button>
+      <button type="button" class="tab-btn" data-tab="history">Car History</button>
+      <button type="button" class="tab-btn" data-tab="management">Car Management</button>
+    </nav>
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="tab-content active" id="dashboard-tab">
+      <div class="card">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div class="section">
+            <h3 class="section-title">Vehicles by Division</h3>
+            <div style="height: 300px; position: relative;">
+              <canvas id="divisionChart"></canvas>
+            </div>
+          </div>
+          <div class="section">
+            <h3 class="section-title">Car Inspection Status</h3>
+            <div style="height: 300px; position: relative;">
+              <canvas id="inspectionStatusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-bottom: 30px;">
+          <h3 class="section-title">Total Cars</h3>
+          <div class="table-wrap">
+            <table class="checklist" id="dashboardVehicleTable">
+              <thead>
+                <tr>
+                  <th>Door No.</th>
+                  <th>Plate No.</th>
+                  <th>Division</th>
+                  <th>Vehicle Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="dashboardVehicleBody">
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">Loading data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">Recent Activities</h3>
+          <div class="table-wrap">
+            <table class="checklist">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Vehicle</th>
+                  <th>Inspector</th>
+                  <th>Status</th>
+                  <th>Issues/Notes</th>
+                </tr>
+              </thead>
+              <tbody id="dashboardActivityBody">
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">Loading activity...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== NEW INSPECTION ========== -->
+    <div class="tab-content" id="inspection-tab">
+    <form class="card" action="#" method="post">
+
+      <section class="section">
+        <h2 class="section-title">Select Vehicle</h2>
+        <div class="field">
+          <label for="vehicleSelect">Choose Vehicle to Inspect <span class="required">*</span></label>
+          <select id="vehicleSelect" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            <option value="">-- Select a vehicle --</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Vehicle Details</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label for="divUnit">Div/Unit <span class="required">*</span></label>
+            <input id="divUnit" name="divUnit" type="text" required placeholder="Example: IT / Unit 3" readonly style="background-color: #f8fafc;" />
+          </div>
+          <div class="field">
+            <label for="doorNo">Vehicle Door Number <span class="required">*</span></label>
+            <input id="doorNo" name="doorNo" type="text" required placeholder="Example: 4" readonly style="background-color: #f8fafc;" />
+          </div>
+          <div class="field">
+            <label for="plateNo">Plate Number <span class="required">*</span></label>
+            <input id="plateNo" name="plateNo" type="text" required placeholder="Example: ABC 1234" readonly style="background-color: #f8fafc;" />
+          </div>
+          <div class="field">
+            <label>Vehicle Size <span class="required">*</span></label>
+            <div class="inline">
+              <label class="chip"><input type="radio" name="vehicleSize" value="4x2" required /><span>4x2</span></label>
+              <label class="chip"><input type="radio" name="vehicleSize" value="4x4-offroad" required /><span>4x4 Off Road</span></label>
+              <label class="chip"><input type="radio" name="vehicleSize" value="4x4-nonoffroad" required /><span>4x4 Non Off Road</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="odometer">Odometer Reading (km)</label>
+            <input id="odometer" name="odometer" type="number" min="0" placeholder="Example: 156000" />
+          </div>
+          <div class="field">
+            <label for="inspMileage">Inspection Sticker Mileage (km)</label>
+            <input id="inspMileage" name="inspMileage" type="number" min="0" placeholder="Example: 5000" />
+          </div>
+          <div class="field">
+            <label for="inspDate">Inspection Sticker Date</label>
+            <input id="inspDate" name="inspDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="vehicleType">Vehicle Type <span class="required">*</span></label>
+            <input id="vehicleType" name="vehicleType" type="text" placeholder="Example: Sedan, SUV, Pickup" required readonly style="background-color: #f8fafc;" />
+          </div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>Restricted Area Sticker Validity</label>
+            <div class="inline">
+              <label class="chip"><input type="radio" name="restrictedSticker" value="yes" /><span>Yes</span></label>
+              <label class="chip"><input type="radio" name="restrictedSticker" value="no" /><span>No</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="expiryDate">Expiration Date</label>
+            <input id="expiryDate" name="expiryDate" type="date" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Vehicle Condition</h2>
+        <div class="grid-3">
+          <fieldset class="box">
+            <legend>Inside</legend>
+            <label class="check"><input type="checkbox" name="inside[]" value="rearview-mirror" /><span>Rearview mirror</span></label>
+            <label class="check"><input type="checkbox" name="inside[]" value="head-lights" /><span>Head lights</span></label>
+            <label class="check"><input type="checkbox" name="inside[]" value="windshields" /><span>Windshields</span></label>
+            <label class="check"><input type="checkbox" name="inside[]" value="side-windows" /><span>Side windows</span></label>
+          </fieldset>
+          <fieldset class="box">
+            <legend>Outside</legend>
+            <label class="check"><input type="checkbox" name="outside[]" value="rearview-mirrors" /><span>Rearview mirrors</span></label>
+            <label class="check"><input type="checkbox" name="outside[]" value="brake-lights" /><span>Brake lights</span></label>
+            <label class="check"><input type="checkbox" name="outside[]" value="taillights" /><span>Tail lights</span></label>
+            <label class="check"><input type="checkbox" name="outside[]" value="turn-signal" /><span>Turn signal lights</span></label>
+          </fieldset>
+          <div class="box">
+            <div class="field">
+              <label for="vehicleObs">Observation</label>
+              <textarea id="vehicleObs" name="vehicleObs" rows="8" placeholder="Write any notes about the vehicle condition..."></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Safety Equipment</h2>
+        <p class="hint">Select the condition for each item and add notes if needed.</p>
+        <div class="table-wrap">
+          <table class="checklist">
+            <thead><tr><th>Items</th><th>Condition</th><th>Observation</th></tr></thead>
+            <tbody>
+              <tr><td>Windshield wipers<span class="required">*</span></td><td><select name="eq_wipers" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_wipers_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Two reflective triangles<span class="required">*</span></td><td><select name="eq_triangles" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_triangles_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Foot brakes<span class="required">*</span></td><td><select name="eq_footbrakes" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_footbrakes_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Emergency brakes<span class="required">*</span></td><td><select name="eq_emergencybrakes" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_emergencybrakes_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Horn<span class="required">*</span></td><td><select name="eq_horn" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_horn_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Tire changing kit (Jack and wrench)<span class="required">*</span></td><td><select name="eq_jack" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_jack_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Tires<span class="required">*</span></td><td><select name="eq_tires" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_tires_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Spare tire<span class="required">*</span></td><td><select name="eq_spare" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_spare_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>Wheels<span class="required">*</span></td><td><select name="eq_wheels" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_wheels_note" type="text" placeholder="..." /></td></tr>
+              <tr><td>JM "What to Do" Flyer<span class="required">*</span></td><td><select name="eq_jm_flyer" required><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_jm_flyer_note" type="text" placeholder="..." /></td></tr>
+              <!-- Offroad only -->
+              <tr class="offroad-only"><td>Emergency Procedure Contact list<span class="required">*</span></td><td><select name="eq_contact_list"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_contact_list_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Two Shovel<span class="required">*</span></td><td><select name="eq_shovel"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_shovel_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Two Sand boards<span class="required">*</span></td><td><select name="eq_sand_boards"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_sand_boards_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Towing Cable / towing strap<span class="required">*</span></td><td><select name="eq_towing"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_towing_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Two soft Shackles<span class="required">*</span></td><td><select name="eq_shackles"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_shackles_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Tire Gauge<span class="required">*</span></td><td><select name="eq_tire_gauge"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_tire_gauge_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>12V tire Air Compressor<span class="required">*</span></td><td><select name="eq_air_compressor"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_air_compressor_note" type="text" placeholder="..." /></td></tr>
+              <tr class="offroad-only"><td>Flash light<span class="required">*</span></td><td><select name="eq_flash"><option value="" disabled selected>Select...</option><option>OK</option><option>Action Required</option></select></td><td><input name="eq_flash_note" type="text" placeholder="..." /></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Signatures</h2>
+        <div class="grid-2">
+          <fieldset class="box">
+            <legend>Inspected By</legend>
+            <div class="grid-2">
+              <div class="field"><label for="inspName">Name<span class="required">*</span></label><input id="inspName" name="inspName" type="text" required /></div>
+              <div class="field"><label for="inspId">ID<span class="required">*</span></label><input id="inspId" name="inspId" type="text" required /></div>
+              <div class="field"><label for="inspSignDate">Date</label><input id="inspSignDate" name="inspSignDate" type="date" /></div>
+            </div>
+          </fieldset>
+          <fieldset class="box">
+            <legend>Supervisor</legend>
+            <div class="grid-2">
+              <div class="field"><label for="supName">Name<span class="required">*</span></label><input id="supName" name="supName" type="text" required /></div>
+              <div class="field"><label for="supId">ID<span class="required">*</span></label><input id="supId" name="supId" type="text" required /></div>
+              <div class="field"><label for="supDate">Date</label><input id="supDate" name="supDate" type="date" /></div>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button type="submit" class="btn primary">Submit Survey</button>
+        <button type="button" class="btn" onclick="window.print()">Print</button>
+      </div>
+    </form>
+    </div>
+
+    <!-- ========== CAR HISTORY ========== -->
+    <div class="tab-content" id="history-tab">
+      <div class="card">
+        <h2 class="section-title">Car Inspection History</h2>
+        <p class="hint">Complete history of all vehicle inspections</p>
+        <div class="table-wrap">
+          <table class="checklist">
+            <thead><tr><th>Date</th><th>Vehicle</th><th>Inspector</th><th>Status</th><th>Issues/Notes</th></tr></thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading inspection history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CAR MANAGEMENT ========== -->
+    <div class="tab-content" id="management-tab">
+      <div class="card">
+        <h2 class="section-title">Car Management</h2>
+        
+        <!-- Add Vehicle -->
+        <div class="section" style="margin-bottom: 30px;">
+          <h3 class="section-title">Add New Vehicle</h3>
+          <div class="grid-2">
+            <div class="field"><label for="newDoorNo">Door Number <span class="required">*</span></label><input id="newDoorNo" type="text" placeholder="Enter door number" /></div>
+            <div class="field"><label for="newPlateNo">Plate Number <span class="required">*</span></label><input id="newPlateNo" type="text" placeholder="Enter plate number" /></div>
+            <div class="field"><label for="newDiv">Division <span class="required">*</span></label><input id="newDiv" type="text" placeholder="Enter division" /></div>
+            <div class="field"><label for="newVehicleType">Vehicle Type</label><input id="newVehicleType" type="text" placeholder="e.g., Sedan, SUV, Pickup" /></div>
+            <div class="field">
+              <label for="newVehicleSize">Vehicle Size</label>
+              <select id="newVehicleSize"><option value="4x2">4x2</option><option value="4x4-offroad">4x4 Off Road</option><option value="4x4-nonoffroad">4x4 Non Off Road</option></select>
+            </div>
+          </div>
+          <button type="button" id="addVehicleBtn" class="btn primary" style="margin-top: 20px;">Add Vehicle</button>
+        </div>
+
+        <!-- Vehicles Table -->
+        <div class="section">
+          <h3 class="section-title">All Vehicles</h3>
+          <div class="table-wrap">
+            <table class="checklist" id="managementVehicleTable">
+              <thead><tr><th>Door No.</th><th>Plate No.</th><th>Division</th><th>Vehicle Type</th><th>Vehicle Size</th><th>Actions</th></tr></thead>
+              <tbody id="managementVehicleBody">
+                <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading vehicles...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========== EDIT VEHICLE MODAL ========== -->
+  <div id="editModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Update Vehicle Information</h3>
+        <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editVehicleId" />
+        <div class="grid-2">
+          <div class="field"><label for="editDoorNo">Door Number <span class="required">*</span></label><input id="editDoorNo" type="text" /></div>
+          <div class="field"><label for="editPlateNo">Plate Number <span class="required">*</span></label><input id="editPlateNo" type="text" /></div>
+          <div class="field"><label for="editDiv">Division</label><input id="editDiv" type="text" /></div>
+          <div class="field"><label for="editVehicleType">Vehicle Type</label><input id="editVehicleType" type="text" /></div>
+          <div class="field">
+            <label for="editVehicleSize">Vehicle Size</label>
+            <select id="editVehicleSize"><option value="4x2">4x2</option><option value="4x4-offroad">4x4 Off Road</option><option value="4x4-nonoffroad">4x4 Non Off Road</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+        <button type="button" class="btn primary" id="saveEditBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== INSPECTION DETAILS MODAL ========== -->
+  <div id="inspectionDetailsModal" class="modal-overlay" style="display:none;">
+    <div id="inspectionDetailsContent"></div>
+  </div>
+  
+  <script src="/static/script_excel.js"></script>
+</body>
+</html>
