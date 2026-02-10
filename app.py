@@ -285,6 +285,11 @@ def update_vehicle(vehicle_id):
         df = ensure_columns(read_excel_safe('Vehicles'), VEHICLE_COLUMNS)
         df['id'] = df['id'].apply(lambda x: safe_int(x, -1))
 
+        # Convert ALL non-id columns to string type BEFORE updating to avoid dtype conflicts
+        for col in df.columns:
+            if col != 'id':
+                df[col] = df[col].astype(str)
+
         if vehicle_id not in df['id'].values:
             return jsonify({"success": False, "message": "Not found"}), 404
 
@@ -292,11 +297,6 @@ def update_vehicle(vehicle_id):
         for field in [c for c in VEHICLE_COLUMNS if c != 'id']:
             if field in data:
                 df.at[idx, field] = str(data[field])
-        
-        # Convert ALL columns to string type before saving to avoid dtype conflicts
-        for col in df.columns:
-            if col != 'id':
-                df[col] = df[col].astype(str)
 
         if write_excel_safe(vehicles_df=df):
             return jsonify({"success": True})
