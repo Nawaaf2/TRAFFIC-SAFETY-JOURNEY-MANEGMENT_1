@@ -186,13 +186,16 @@ def get_analytics():
         
         # Get all vehicle IDs from Vehicles table
         all_vehicle_ids = set()
+        vehicle_status_map = {}  # id -> status from Vehicles table
         if len(df_v) > 0:
-            for vid in df_v['id']:
-                vid_int = safe_int(vid, -1)
+            for _, row in df_v.iterrows():
+                vid_int = safe_int(row.get('id', -1), -1)
                 if vid_int > 0:
                     all_vehicle_ids.add(vid_int)
+                    vehicle_status_map[vid_int] = safe_str(row.get('status', ''))
         
         # Calculate status based on LAST inspection for each vehicle
+        # Only consider inspections for vehicles that still exist
         passed_vehicles = set()
         action_vehicles = set()
         
@@ -202,11 +205,11 @@ def get_analytics():
             # Sort by date descending
             df_i_sorted = df_i.sort_values('inspectionDate_dt', ascending=False)
             
-            # Get the last inspection for each vehicle
+            # Get the last inspection for each vehicle (only if vehicle still exists)
             for vehicle_id in df_i_sorted['vehicleId'].unique():
                 vid = safe_int(vehicle_id, -1)
-                if vid <= 0:
-                    continue
+                if vid <= 0 or vid not in all_vehicle_ids:
+                    continue  # Skip orphaned inspections for deleted vehicles
                 vehicle_inspections = df_i_sorted[df_i_sorted['vehicleId'] == vehicle_id]
                 if len(vehicle_inspections) > 0:
                     last_status = vehicle_inspections.iloc[0]['overallStatus']
@@ -214,6 +217,16 @@ def get_analytics():
                         passed_vehicles.add(vid)
                     elif last_status == 'Action Required':
                         action_vehicles.add(vid)
+        
+        # For vehicles without inspections, check the status field in Vehicles table
+        inspected_vehicles = passed_vehicles | action_vehicles
+        remaining_vehicles = all_vehicle_ids - inspected_vehicles
+        for vid in remaining_vehicles:
+            vs = vehicle_status_map.get(vid, '')
+            if vs == 'Passed':
+                passed_vehicles.add(vid)
+            elif vs == 'Action Required':
+                action_vehicles.add(vid)
         
         passed = len(passed_vehicles)
         action = len(action_vehicles)

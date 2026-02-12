@@ -36,11 +36,13 @@
           <div class="section">
             <h3 class="section-title">Vehicles by Division</h3>
             <div style="height: 300px; position: relative;">
-              <canvas id="divisionChart"></canvas>
+              <canvas id="divisionChart" style="cursor:pointer;"></canvas>
             </div>
+            <p style="text-align:center;color:#94a3b8;font-size:11px;margin-top:6px;">Click a bar to filter inspection status</p>
           </div>
           <div class="section">
             <h3 class="section-title">Car Inspection Status</h3>
+            <div id="divisionFilterIndicator" style="margin-bottom: 10px;"></div>
             <div style="height: 300px; position: relative;">
               <canvas id="inspectionStatusChart"></canvas>
             </div>

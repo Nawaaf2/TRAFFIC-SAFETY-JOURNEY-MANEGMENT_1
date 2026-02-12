@@ -2,13 +2,13 @@
 
 :root {
   /* - Blue & Teal Theme */
-  --primary: #0f766e;
-  --primary-light: #14b8a6;
-  --primary-dark: #0d5a54;
-  --accent: #06b6d4;
-  --accent-light: #67e8f9;
+  --primary: #00843D;
+  --primary-light: #00A3E0;
+  --primary-dark: #4b505c;
+  --accent: #00A3E0;
+  --accent-light: #0033A0;
   
-  --success: #10b981;
+  --success: #84BD00;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #3b82f6;

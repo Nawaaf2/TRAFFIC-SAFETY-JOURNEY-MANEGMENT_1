@@ -8,7 +8,7 @@ let analyticsData = {};
 let selectedVehicleId = null;
 let divisionChart = null;
 let inspectionStatusChart = null;
-let selectedDivisions = []; // Track division filter for doughnut chart (multi-select)
+let selectedDivision = null; // Track division filter for doughnut chart
 
 // Register datalabels plugin
 Chart.register(ChartDataLabels);
@@ -88,8 +88,8 @@ function updateVehiclesByDivision() {
         backgroundColor: labels.map(function(l) {
           var colors = ['#0f766e','#14b8a6','#06b6d4','#3b82f6','#8b5cf6','#ec4899'];
           var idx = labels.indexOf(l) % colors.length;
-          // Dim non-selected bars when divisions are selected
-          if (selectedDivisions.length > 0 && selectedDivisions.indexOf(l) === -1) return colors[idx] + '40';
+          // Dim non-selected bars when a division is selected
+          if (selectedDivision && l !== selectedDivision) return colors[idx] + '40';
           return colors[idx];
         }),
         borderRadius: 8, borderWidth: 0
@@ -101,12 +101,11 @@ function updateVehiclesByDivision() {
       onClick: function(evt, elements) {
         if (elements.length > 0) {
           var clickedLabel = labels[elements[0].index];
-          var idx = selectedDivisions.indexOf(clickedLabel);
-          if (idx !== -1) {
-            // Already selected, remove it
-            selectedDivisions.splice(idx, 1);
+          if (selectedDivision === clickedLabel) {
+            // Clicking same bar again = reset
+            selectedDivision = null;
           } else {
-            selectedDivisions.push(clickedLabel);
+            selectedDivision = clickedLabel;
           }
           updateVehiclesByDivision();
           updateCarInspectionStatus();
@@ -140,9 +139,9 @@ function updateCarInspectionStatus() {
 
   var passed = 0, action = 0, notInspected = 0;
 
-  if (selectedDivisions.length > 0) {
-    // Filter vehicles by selected divisions
-    var divVehicles = vehiclesData.filter(function(v) { return selectedDivisions.indexOf(v.division) !== -1; });
+  if (selectedDivision) {
+    // Filter vehicles by selected division
+    var divVehicles = vehiclesData.filter(function(v) { return v.division === selectedDivision; });
     var divVehicleIds = divVehicles.map(function(v) { return v.id; });
 
     divVehicles.forEach(function(v) {
@@ -208,16 +207,10 @@ function updateCarInspectionStatus() {
 function updateDivisionFilterIndicator() {
   var container = document.getElementById('divisionFilterIndicator');
   if (!container) return;
-  if (selectedDivisions.length > 0) {
-    var badges = selectedDivisions.map(function(div) {
-      return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e0f2fe;border:1px solid #7dd3fc;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#0369a1;">' +
-        div +
-        '<button onclick="removeDivisionFilter(\'' + div + '\')" style="background:#0369a1;color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;margin-left:2px;" title="Remove">&times;</button>' +
-      '</span>';
-    }).join(' ');
-    container.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">' +
-      '<span style="font-size:13px;font-weight:600;color:#0369a1;">📊 Filtered:</span>' + badges +
-      '<button onclick="clearDivisionFilter()" style="background:none;border:1px solid #0369a1;color:#0369a1;border-radius:20px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600;" title="Clear all">Clear All</button>' +
+  if (selectedDivision) {
+    container.innerHTML = '<div style="display:inline-flex;align-items:center;gap:8px;background:#e0f2fe;border:1px solid #7dd3fc;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;color:#0369a1;">' +
+      '<span>📊 Filtered: ' + selectedDivision + '</span>' +
+      '<button onclick="clearDivisionFilter()" style="background:#0369a1;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;" title="Clear filter">&times;</button>' +
     '</div>';
   } else {
     container.innerHTML = '';
@@ -225,15 +218,7 @@ function updateDivisionFilterIndicator() {
 }
 
 function clearDivisionFilter() {
-  selectedDivisions = [];
-  updateVehiclesByDivision();
-  updateCarInspectionStatus();
-  updateDivisionFilterIndicator();
-}
-
-function removeDivisionFilter(div) {
-  var idx = selectedDivisions.indexOf(div);
-  if (idx !== -1) selectedDivisions.splice(idx, 1);
+  selectedDivision = null;
   updateVehiclesByDivision();
   updateCarInspectionStatus();
   updateDivisionFilterIndicator();
