@@ -3,4 +3,3 @@ gunicorn
 pandas
 openpyxl
 
-الملف ذا سويته عشان اشغل الموقع على سيرفر بس  RENDER
